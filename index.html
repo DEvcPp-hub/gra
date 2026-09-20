@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lowrider VR</title>
+
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background: black;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<canvas id="renderCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("renderCanvas");
+
+const engine = new BABYLON.Engine(
+    canvas,
+    true,
+    {
+        preserveDrawingBuffer: true,
+        stencil: true
+    }
+);
+
+const createScene = async function () {
+
+    const scene = new BABYLON.Scene(engine);
+
+    // Światło
+    const light = new BABYLON.HemisphericLight(
+        "light",
+        new BABYLON.Vector3(0, 1, 0),
+        scene
+    );
+
+    light.intensity = 1.0;
+
+    // Kamera
+    const camera = new BABYLON.FreeCamera(
+        "camera",
+        new BABYLON.Vector3(0, 1.6, -3),
+        scene
+    );
+
+    camera.setTarget(
+        new BABYLON.Vector3(0, 1.5, 0)
+    );
+
+    // Podłoga
+    const floor = BABYLON.MeshBuilder.CreateGround(
+        "floor",
+        {
+            width: 20,
+            height: 20
+        },
+        scene
+    );
+
+    const floorMaterial = new BABYLON.StandardMaterial(
+        "floorMaterial",
+        scene
+    );
+
+    floorMaterial.diffuseColor =
+        new BABYLON.Color3(0.15, 0.15, 0.15);
+
+    floor.material = floorMaterial;
+
+    // Kostka testowa
+    const box = BABYLON.MeshBuilder.CreateBox(
+        "box",
+        {
+            size: 1
+        },
+        scene
+    );
+
+    box.position.y = 0.5;
+
+    const boxMaterial = new BABYLON.StandardMaterial(
+        "boxMaterial",
+        scene
+    );
+
+    boxMaterial.diffuseColor =
+        new BABYLON.Color3(0.1, 0.5, 1.0);
+
+    box.material = boxMaterial;
+
+    // WebXR
+    try {
+
+        const xr = await scene.createDefaultXRExperienceAsync({
+            floorMeshes: [floor]
+        });
+
+        console.log("WebXR gotowy");
+
+    } catch (error) {
+
+        console.error(
+            "WebXR nie jest dostępny:",
+            error
+        );
+
+    }
+
+    return scene;
+};
+
+createScene().then(scene => {
+
+    engine.runRenderLoop(() => {
+        scene.render();
+    });
+
+});
+
+window.addEventListener("resize", () => {
+    engine.resize();
+});
+</script>
+
+</body>
+</html>
